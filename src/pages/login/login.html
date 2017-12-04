@@ -1,0 +1,40 @@
+<ion-header>
+  
+    <ion-navbar>
+      <ion-title>Login</ion-title>
+    </ion-navbar>
+  
+  </ion-header>
+  
+  
+  <ion-content padding>
+  
+      <ion-card #container>
+  
+          <ion-card-header>
+              Login
+            </ion-card-header>
+          
+            <ion-card-content>
+                <ion-list>
+                    
+                  <ion-item>
+                    <ion-label stacked>Username</ion-label>
+                    <ion-input type="text"></ion-input>
+                  </ion-item>
+                
+                  <ion-item>
+                    <ion-label stacked>Password</ion-label>
+                    <ion-input type="password"></ion-input>
+                  </ion-item>
+                    
+                </ion-list>
+          
+                <button ion-button block (tap)="submit()">{{isLoggingIn ? 'Sign in' : 'Sign up'}}</button>
+                <button ion-button block (tap)="toggleDisplay()">{{isLoggingIn ? 'Sign up' : 'Back to login'}}</button>
+                <button ion-button block (tap)="fbLogin()">Login with Facebook</button>
+            </ion-card-content>
+  
+      </ion-card>
+  
+  </ion-content>
