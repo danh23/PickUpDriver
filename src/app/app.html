@@ -1,1 +1,17 @@
-<ion-nav [root]="rootPage"></ion-nav>
+<ion-menu [content]="content">
+    <ion-header>
+        <ion-toolbar color="primary">
+          <ion-title>Menu 1</ion-title>
+        </ion-toolbar>
+      </ion-header>
+    
+      <ion-content>
+        <ion-list>
+          <ion-item (tap)="changePage()">Load Pack</ion-item>
+          <button ion-item menuClose detail-none>
+            Close Menu 1
+          </button>
+        </ion-list>
+      </ion-content>
+</ion-menu>
+<ion-nav #content [root]="rootPage"></ion-nav>
