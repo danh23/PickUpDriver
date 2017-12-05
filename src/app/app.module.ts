@@ -13,16 +13,19 @@ import { GoogleMaps, Geocoder} from '@ionic-native/google-maps';
 import { Geolocation } from '@ionic-native/geolocation';
 import { LaunchNavigator } from '@ionic-native/launch-navigator';
 import { LoginPageModule } from "../pages/login/login.module";
+import { ComponentsModule } from "../components/components.module";
+import { HomePageModule } from "../pages/home/home.module";
 
 @NgModule({
   declarations: [
-    MyApp,
-    HomePage
+    MyApp
   ],
   imports: [
     BrowserModule,
     IonicModule.forRoot(MyApp),
-    LoginPageModule
+    HomePageModule,
+    LoginPageModule,
+    ComponentsModule
   ],
   bootstrap: [IonicApp],
   entryComponents: [
