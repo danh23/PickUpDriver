@@ -6,7 +6,9 @@ import {
   GoogleMapOptions,
   CameraPosition,
   MarkerOptions,
-  Marker
+  Marker,
+  CircleOptions,
+  Circle
  } from '@ionic-native/google-maps';
  import { Geolocation } from '@ionic-native/geolocation';
  import { LaunchNavigator, LaunchNavigatorOptions } from "@ionic-native/launch-navigator";
@@ -31,6 +33,7 @@ export class MapComponent implements OnInit{
     lat: 0,
     lng: 0
   };
+  area: number = 10;
   
   directionsService = new google.maps.DirectionsService;
   mapOptions: GoogleMapOptions = {
@@ -50,6 +53,15 @@ export class MapComponent implements OnInit{
     },
     mapType: 'MAP_TYPE_ROADMAP'
   };
+
+  areaOptions: CircleOptions = {
+    center: this.myLocation,
+    radius: this.area,
+    strokeWidth: 2
+  }
+
+  circle: Circle;  
+
   mapElement: HTMLElement;
   navigatorOptions: LaunchNavigatorOptions = {
     //app: this.launchNavigator.APP.GOOGLE_MAPS,
@@ -84,6 +96,12 @@ export class MapComponent implements OnInit{
       this.moveCamera(this.myLocation);
       this.map.setVisible(true);
       this.map.setClickable(true);
+      this.map.addCircle(this.areaOptions).then((circle: Circle) =>{
+        this.circle = circle;
+        this.map.on(GoogleMapsEvent.CAMERA_MOVE).subscribe(() => {
+          circle.setCenter(this.map.getCameraTarget());
+        });
+      });
     }).catch((error) => {
       console.log('Error getting location', error);
     });  
@@ -161,6 +179,14 @@ export class MapComponent implements OnInit{
             error => console.log('Error launching navigator', error)
           );
         });
-      }
+  }
+
+  saveBoundaries() { 
+    console.log(this.area);
+  }
+
+  changeArea(value: number) {
+    this.circle.setRadius(value);
+  }
 
 }

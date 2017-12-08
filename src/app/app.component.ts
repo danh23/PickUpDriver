@@ -4,6 +4,7 @@ import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { HomePage } from '../pages/home/home';
 import { LoginPage } from "../pages/login/login";
+import { OrdersPage } from "../pages/orders/orders";
 declare var cordova: any, PushNotification: any;
 
 @Component({
@@ -14,12 +15,12 @@ export class MyApp {
   @ViewChild('content') nav: NavController;
 
   rootPage:any = LoginPage;
-  pages: Array<{title: string, component: any}>;
+  pages: Array<{index: number, title: string, component: any}>;
 
   constructor(private platform: Platform, private statusBar: StatusBar, private splashScreen: SplashScreen, public menuCtrl: MenuController) {
 
     this.pages = [
-      { title: 'Hello Ionic', component: HomePage }
+      { index: 0, title: 'Orders', component: OrdersPage }
     ];
 
     this.initCordova();
@@ -74,9 +75,10 @@ export class MyApp {
     });
   }
 
-  changePage() {
+  changePage(index: number) {
     this.menuCtrl.close();
-    //this.nav.push(UserInputPage);
+    let page = this.pages.find(page => page.index == index);
+    this.nav.push(page.component);
   }
 }
 

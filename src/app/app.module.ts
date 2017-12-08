@@ -15,6 +15,8 @@ import { LaunchNavigator } from '@ionic-native/launch-navigator';
 import { LoginPageModule } from "../pages/login/login.module";
 import { ComponentsModule } from "../components/components.module";
 import { HomePageModule } from "../pages/home/home.module";
+import { OrdersPageModule } from "../pages/orders/orders.module";
+import { OrderDetailsPageModule } from "../pages/order-details/order-details.module";
 
 @NgModule({
   declarations: [
@@ -25,7 +27,9 @@ import { HomePageModule } from "../pages/home/home.module";
     IonicModule.forRoot(MyApp),
     HomePageModule,
     LoginPageModule,
-    ComponentsModule
+    ComponentsModule,
+    OrdersPageModule,
+    OrderDetailsPageModule
   ],
   bootstrap: [IonicApp],
   entryComponents: [
