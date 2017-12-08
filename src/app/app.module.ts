@@ -17,6 +17,7 @@ import { ComponentsModule } from "../components/components.module";
 import { HomePageModule } from "../pages/home/home.module";
 import { OrdersPageModule } from "../pages/orders/orders.module";
 import { OrderDetailsPageModule } from "../pages/order-details/order-details.module";
+import { SharedService } from "../shared/shared-service";
 
 @NgModule({
   declarations: [
@@ -45,7 +46,8 @@ import { OrderDetailsPageModule } from "../pages/order-details/order-details.mod
     GoogleMaps,
     Geocoder,
     Geolocation,
-    LaunchNavigator
+    LaunchNavigator,
+    SharedService
   ]
 })
 export class AppModule {}

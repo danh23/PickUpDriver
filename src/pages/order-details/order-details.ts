@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { IonicPage, NavController, NavParams } from 'ionic-angular';
+import { SharedService } from "../../shared/shared-service";
 
 /**
  * Generated class for the OrderDetailsPage page.
@@ -15,12 +16,16 @@ import { IonicPage, NavController, NavParams } from 'ionic-angular';
 })
 export class OrderDetailsPage {
 
-  constructor(public navCtrl: NavController, public navParams: NavParams) {
+  constructor(public navCtrl: NavController, public navParams: NavParams, private sharedService: SharedService) {
   }
 
   ionViewDidLoad() {
     console.log('ionViewDidLoad OrderDetailsPage');
     console.log(this.navParams.data);
+  }
+
+  selectOrder() {
+    this.sharedService.displayOrderOnMap(this.navParams.data);
   }
 
 }
