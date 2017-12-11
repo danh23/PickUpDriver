@@ -1,5 +1,6 @@
 export class Order {
     
+        title: string;
         pickup: string;
         dropoff: string;
         pickupDate: Date;

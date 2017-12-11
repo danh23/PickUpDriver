@@ -18,15 +18,22 @@ import { OrderDetailsPage } from "../order-details/order-details";
 export class OrdersPage {
 
   orders: Order[] = [];
+  orderTitle: string = "";
 
   constructor(public navCtrl: NavController, public navParams: NavParams) {
   }
 
   ionViewDidLoad() {
     console.log('ionViewDidLoad OrdersPage');
-    this.orders.push(new Order());
-    this.orders.push(new Order());
-    this.orders.push(new Order());
+    let order = new Order();
+    order.title = "Order 1";
+    this.orders.push(order);
+    order = new Order();
+    order.title = "Order 2";
+    this.orders.push(order);
+    order = new Order();
+    order.title = "Order 3";
+    this.orders.push(order);
   }
 
   orderSelected(order: Order) {

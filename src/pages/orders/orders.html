@@ -15,11 +15,11 @@
 
 <ion-content padding>
   <ion-list>
-      <button ion-item *ngFor="let order of orders" (click)="orderSelected(order)">
+      <button ion-item *ngFor="let order of orders | ordersFilter:orderTitle" (click)="orderSelected(order)">
           <ion-avatar item-start>
             <img src="img/image.png">
           </ion-avatar>
-          <h2>Order 1</h2>
+          <h2>{{order.title}}</h2>
           <h3>Sos. Oltenitei 12</h3>
           <p>test</p>  
       </button>
