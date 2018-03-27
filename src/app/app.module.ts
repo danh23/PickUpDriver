@@ -18,6 +18,9 @@ import { HomePageModule } from "../pages/home/home.module";
 import { OrdersPageModule } from "../pages/orders/orders.module";
 import { OrderDetailsPageModule } from "../pages/order-details/order-details.module";
 import { SharedService } from "../shared/shared-service";
+import { RequestOptions } from "@angular/http";
+import { Interceptor } from "../config/interceptor";
+import { OrderService } from "../shared/order/order-service";
 
 @NgModule({
   declarations: [
@@ -47,7 +50,9 @@ import { SharedService } from "../shared/shared-service";
     Geocoder,
     Geolocation,
     LaunchNavigator,
-    SharedService
+    SharedService,
+    OrderService,
+    {provide: RequestOptions, useClass: Interceptor},
   ]
 })
 export class AppModule {}

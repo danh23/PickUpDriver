@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { IonicPage, NavController, NavParams } from 'ionic-angular';
-import { Order } from "../../shared/order/order";
+import { Order, Location, OrdersInAreaRequest } from "../../shared/order/order";
 import { OrderDetailsPage } from "../order-details/order-details";
-
+import { OrderService } from "../../shared/order/order-service";
 /**
  * Generated class for the OrdersPage page.
  *
@@ -17,23 +17,22 @@ import { OrderDetailsPage } from "../order-details/order-details";
 })
 export class OrdersPage {
 
+  location: Location = new Location();
+  offset: number= 4;
   orders: Order[] = [];
   orderTitle: string = "";
 
-  constructor(public navCtrl: NavController, public navParams: NavParams) {
+  constructor(public navCtrl: NavController, public navParams: NavParams, private orderService: OrderService) {
   }
 
   ionViewDidLoad() {
     console.log('ionViewDidLoad OrdersPage');
-    let order = new Order();
-    order.title = "Order 1";
-    this.orders.push(order);
-    order = new Order();
-    order.title = "Order 2";
-    this.orders.push(order);
-    order = new Order();
-    order.title = "Order 3";
-    this.orders.push(order);
+    let orderRequest = new OrdersInAreaRequest();
+    orderRequest.location = this.location;
+    orderRequest.offset = this.offset;
+    this.orderService.getOrdersInArea(orderRequest).subscribe(res => {
+      this.orders = res;
+    }, (err) => {console.log(err)});
   }
 
   orderSelected(order: Order) {
