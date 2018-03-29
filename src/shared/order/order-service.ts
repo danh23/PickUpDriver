@@ -3,7 +3,7 @@ import { Http, Headers, Response, RequestOptions } from "@angular/http";
 import { Observable } from "rxjs/Rx";
 import { Config } from "../../config/config";
 import { endpoints } from "../../config/endpoint";
-import { OrdersInAreaRequest } from "./order";
+import { OrdersInAreaRequest, DriverToClientNotification } from "./order";
 
 
 @Injectable()
@@ -28,6 +28,15 @@ export class OrderService {
         .map(response => response.json())
         .do(data => console.log("Do data: " + JSON.stringify(data)))
         .catch(this.handleError);
+        return result;
+    }
+
+    notifyClient(request: DriverToClientNotification) {
+        let url = Config.apiUrl + endpoints.notifyClient
+        let result = this.http.post(url, request, this.options)
+          .map(response => response.json())
+          .do(data => console.log("Do data: " + JSON.stringify(data)))
+          .catch(this.handleError);
         return result;
     }
 

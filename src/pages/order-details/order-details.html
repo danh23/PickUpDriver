@@ -7,15 +7,26 @@
 <ion-header>
 
   <ion-navbar>
-    <ion-title>Order test</ion-title>
+    <ion-title>{{order.title}}</ion-title>
   </ion-navbar>
 
 </ion-header>
 
 
 <ion-content padding>
-  <h2>{{order.title}}</h2>
-  <h2>{{order.pickUpLocation}}</h2>
-  <h2>{{order.dropOffLocation}}</h2>
-  <button (tap)="selectOrder()">Take order</button>
+    <ion-grid>
+        <ion-row>
+          <ion-col col-4><ion-label>Title:</ion-label></ion-col>
+          <ion-col col-8>{{order.title}}</ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col col-4><ion-label>Pickup:</ion-label></ion-col>
+          <ion-col col-8>{{order.pickUpAddress}}</ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col col-4><ion-label>Dropoff:</ion-label></ion-col>
+          <ion-col col-8>{{order.dropOffAddress}}</ion-col>
+        </ion-row>
+        <button (tap)="selectOrder()" ion-button>Select order</button>
+      </ion-grid>
 </ion-content>

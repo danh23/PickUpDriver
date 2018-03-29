@@ -21,6 +21,7 @@ import { SharedService } from "../shared/shared-service";
 import { RequestOptions } from "@angular/http";
 import { Interceptor } from "../config/interceptor";
 import { OrderService } from "../shared/order/order-service";
+import { LocalDataService } from "../shared/local-data.service";
 
 @NgModule({
   declarations: [
@@ -42,6 +43,7 @@ import { OrderService } from "../shared/order/order-service";
     LoginPage
   ],
   providers: [
+    LocalDataService,
     StatusBar,
     SplashScreen,
     {provide: ErrorHandler, useClass: IonicErrorHandler},

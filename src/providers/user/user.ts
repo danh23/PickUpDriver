@@ -1,59 +1,46 @@
 import { Injectable } from "@angular/core";
-import { Http, Headers, Response } from "@angular/http";
+import { Http, Headers, Response, RequestOptions } from "@angular/http";
 import { Observable } from "rxjs/Rx";
 import "rxjs/add/operator/do";
 import "rxjs/add/operator/map";
 
 import { Config } from "../../config/config";
 import { User } from "../../shared/user/user";
+import { endpoints } from "../../config/endpoint";
 
 @Injectable()
 export class UserProvider {
-  constructor(private http: Http) {}
-
-  register(user: User) {
-    let headers = new Headers();
-    headers.append("Content-Type", "application/json");
-
-    return this.http.post(
-      Config.apiUrl + "Users",
-      JSON.stringify({
-        Username: user.email,
-        Email: user.email,
-        Password: user.password
-      }),
-      { headers: headers }
-    )
-    .catch(this.handleErrors);
-  }
-
-  login(user: User) {
-    let headers = new Headers();
-    headers.append("Content-Type", "application/json");
-
-    //for testing
-    return new Observable(observer => {
-        observer.next("test");
-    });
+  
+    private options: RequestOptions;
     
-    // return this.http.post(
-    //   Config.apiUrl + "oauth/token",
-    //   JSON.stringify({
-    //     username: user.email,
-    //     password: user.password,
-    //     grant_type: "password"
-    //   }),
-    //   { headers: headers }
-    // )
-    // .map(response => response.json())
-    // .do(data => {
-    //   Config.token = data.Result.access_token;
-    // })
-    // .catch(this.handleErrors);
-  }
+    constructor(private http: Http) {}
 
-  handleErrors(error: Response) {
-    console.log(JSON.stringify(error.json()));
-    return Observable.throw(error);
-  }
+    register(user: User) {
+      let url = Config.apiUrl + endpoints
+      let result = this.http.post(url, user, this.options)
+      .map((response: Response) => <number>response.json())
+      .do(data => console.log("Do data: " + JSON.stringify(data)))
+      .catch(this.handleError);
+      return result;
+    }
+
+    login(email: string) {
+      let url = Config.apiUrl + endpoints.getUserByEmail;
+      let result = this.http.post(url, email, this.options)
+      .map((response: Response) => response.json())
+      .do(data => console.log("Do data: " + JSON.stringify(data)))
+      .catch(this.handleError);
+      return result;
+    }
+  
+    private handleError(err) {
+        let errMessage: string;
+        if (err instanceof Response) {
+            let body = err.json() || '';
+            errMessage = body.message;
+        } else {
+            errMessage = err.meessage ? err.message : err.toString();
+        }
+        return Observable.throw(errMessage);
+    }
 }

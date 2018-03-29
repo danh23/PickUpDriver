@@ -3,6 +3,7 @@ import { IonicPage, NavController, NavParams } from 'ionic-angular';
 import { Order, Location, OrdersInAreaRequest } from "../../shared/order/order";
 import { OrderDetailsPage } from "../order-details/order-details";
 import { OrderService } from "../../shared/order/order-service";
+import { LocalDataService } from "../../shared/local-data.service";
 /**
  * Generated class for the OrdersPage page.
  *
@@ -16,20 +17,16 @@ import { OrderService } from "../../shared/order/order-service";
   templateUrl: 'orders.html',
 })
 export class OrdersPage {
-
-  location: Location = new Location();
-  offset: number= 4;
+  
   orders: Order[] = [];
   orderTitle: string = "";
 
-  constructor(public navCtrl: NavController, public navParams: NavParams, private orderService: OrderService) {
+  constructor(public navCtrl: NavController, public navParams: NavParams, private orderService: OrderService, private localData: LocalDataService) {
   }
 
   ionViewDidLoad() {
     console.log('ionViewDidLoad OrdersPage');
-    let orderRequest = new OrdersInAreaRequest();
-    orderRequest.location = this.location;
-    orderRequest.offset = this.offset;
+    let orderRequest = this.localData.getSearchingArea();
     this.orderService.getOrdersInArea(orderRequest).subscribe(res => {
       this.orders = res;
     }, (err) => {console.log(err)});

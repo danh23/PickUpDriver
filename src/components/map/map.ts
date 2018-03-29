@@ -8,12 +8,15 @@ import {
   MarkerOptions,
   Marker,
   CircleOptions,
-  Circle
+  Circle,
+  ILatLng
  } from '@ionic-native/google-maps';
  import { Geolocation } from '@ionic-native/geolocation';
  import { LaunchNavigator, LaunchNavigatorOptions } from "@ionic-native/launch-navigator";
  import { SharedService } from "../../shared/shared-service";
- import { Order } from "../../shared/order/order";
+ import { Order, Location } from "../../shared/order/order";
+ import { LocalDataService } from "../../shared/local-data.service";
+ import Utils from "../../utils/utils";
 
  declare var google: any;
 /**
@@ -28,12 +31,12 @@ import {
 })
 export class MapComponent implements OnInit{
 
-  start = 'bucuresti';
-  end = 'vaslui';
+  start: any = 'bucuresti';
+  end: any = 'vaslui';
   map: GoogleMap;
-  myLocation = {
-    lat: 0,
-    lng: 0
+  myLocation: Location = {
+    latitude: 0,
+    longitude: 0
   };
   area: number = 10;
   
@@ -57,7 +60,7 @@ export class MapComponent implements OnInit{
   };
 
   areaOptions: CircleOptions = {
-    center: this.myLocation,
+    center: {lat: this.myLocation.latitude, lng: this.myLocation.longitude},
     radius: this.area,
     strokeWidth: 2
   }
@@ -69,13 +72,15 @@ export class MapComponent implements OnInit{
     //app: this.launchNavigator.APP.GOOGLE_MAPS,
     transportMode: this.launchNavigator.TRANSPORT_MODE.DRIVING
   };
-  constructor(private googleMaps: GoogleMaps, private geolocation: Geolocation, private launchNavigator: LaunchNavigator, private sharedService: SharedService) { }
+
+  constructor(private googleMaps: GoogleMaps, private geolocation: Geolocation, private launchNavigator: LaunchNavigator, private sharedService: SharedService, private localData: LocalDataService) { }
 
   ngOnInit() {
     console.log("map view loaded");
     this.sharedService.sendOrder$.subscribe((order: Order) => {
       console.log("order marker added");
-      this.addMarker({lat: this.myLocation.lat - 0.01, lng: this.myLocation.lng - 0.01});
+      this.addOrderMarker(order);
+      this.end = {lat: order.dropOffLocation.latitude, lng: order.dropOffLocation.longitude }
     });
     this.loadMap();
   }
@@ -97,15 +102,20 @@ export class MapComponent implements OnInit{
 
   initMap() {
     this.getCurrentPosition().then((resp) => {
-      this.myLocation.lat = resp.coords.latitude;
-      this.myLocation.lng = resp.coords.longitude;
+      this.myLocation.latitude = resp.coords.latitude;
+      this.myLocation.longitude= resp.coords.longitude;
+
+      this.localData.setUserLocation(this.myLocation);
+      
       this.moveCamera(this.myLocation);
       this.map.setVisible(true);
       this.map.setClickable(true);
       this.map.addCircle(this.areaOptions).then((circle: Circle) =>{
         this.circle = circle;
+        this.localData.setSearchingArea({location: this.myLocation, offset: Utils.computeDistanceBeetweenPoints(this.circle.getCenter(), this.circle.getBounds().northeast)});
         this.map.on(GoogleMapsEvent.CAMERA_MOVE).subscribe(() => {
           circle.setCenter(this.map.getCameraTarget());
+          this.localData.setSearchingArea({location: {latitude: this.map.getCameraTarget().lat, longitude: this.map.getCameraTarget().lng}, offset: Utils.computeDistanceBeetweenPoints(this.circle.getCenter(), this.circle.getBounds().northeast)});
         });
       });
     }).catch((error) => {
@@ -113,14 +123,14 @@ export class MapComponent implements OnInit{
     });  
   }
 
-  addMarker(latLng) {
+  addMarker(location: Location) {
       console.log("add marker");
-      console.log(latLng);
+      console.log(location);
       this.map.addMarker({
         title: 'Ionic',
         icon: 'blue',
         animation: 'DROP',
-        position: {lat: latLng.lat, lng: latLng.lng}
+        position: {lat: location.latitude, lng: location.longitude}
       })
       .then(marker => {
         marker.on(GoogleMapsEvent.MARKER_CLICK)
@@ -130,12 +140,27 @@ export class MapComponent implements OnInit{
       });
     }
 
-  moveCamera(location) {
-    this.mapOptions.camera.target.lat = location.lat;
-    this.mapOptions.camera.target.lng = location.lng;
+    addOrderMarker(order: Order) {
+      console.log("add order marker");
+      this.map.addMarker({
+        title: order.title,
+        icon: 'red',
+        animation: 'DROP',
+        position: {lat: order.pickUpLocation.latitude, lng: order.pickUpLocation.longitude}
+      })
+      .then(marker => {
+        marker.on(GoogleMapsEvent.MARKER_CLICK)
+          .subscribe(() => {
+            alert('clicked');
+          });
+      });
+    }
+
+  moveCamera(location: Location) {
+    this.mapOptions.camera.target.lat = location.latitude;
+    this.mapOptions.camera.target.lng = location.longitude;
     console.log(location);
     this.map.moveCamera(this.mapOptions.camera).then(()=>{
-      this.addMarker(location);
       console.log("camera moved");
     });
   }
@@ -147,15 +172,16 @@ export class MapComponent implements OnInit{
   updatePosition() {
     let watch = this.geolocation.watchPosition();
     watch.subscribe((resp) => {
-      this.myLocation.lat = resp.coords.latitude;
-      this.myLocation.lng = resp.coords.longitude;
+      this.myLocation.latitude = resp.coords.latitude;
+      this.myLocation.longitude = resp.coords.longitude;
+      this.localData.setUserLocation(this.myLocation);
     });
   }
 
   calculateAndDisplayRoute() {
       console.log("navigate");
         this.directionsService.route({
-          origin: {lat: this.myLocation.lat, lng: this.myLocation.lng},
+          origin: {lat: this.myLocation.latitude, lng: this.myLocation.longitude},
           destination: this.end,
           travelMode: 'DRIVING'
         }, (response, status) => {
@@ -187,12 +213,9 @@ export class MapComponent implements OnInit{
         });
   }
 
-  saveBoundaries() { 
-    console.log(this.area);
-  }
-
   changeArea(value: number) {
     this.circle.setRadius(value);
+    let offset = Utils.computeDistanceBeetweenPoints(this.circle.getCenter(), this.circle.getBounds().northeast);
+    this.localData.setSearchingArea({location: {latitude: this.circle.getCenter().lat, longitude: this.circle.getCenter().lng}, offset: offset});
   }
-
 }

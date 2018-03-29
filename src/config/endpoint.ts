@@ -1,4 +1,8 @@
 export const endpoints = {
     getOrdersInArea: "/order/getOrdersInArea",
-    getOrderById: "/order/getOrderById"
+    getOrderById: "/order/getOrderById",
+
+    getUserByEmail: "/user/getUserByEmail",
+
+    notifyClient: "/pushNotification/notifyClient"
 }

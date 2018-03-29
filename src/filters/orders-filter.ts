@@ -6,7 +6,7 @@ import { Order } from "../shared/order/order";
     pure: false
 })
 export class OrdersFilter implements PipeTransform {
-    transform(items: any[], filter: string): any {
+    transform(items: Order[], filter: string): any {
         if (!items || !filter || filter == "") {
             return items;
         }

@@ -5,6 +5,7 @@ import { SplashScreen } from '@ionic-native/splash-screen';
 import { HomePage } from '../pages/home/home';
 import { LoginPage } from "../pages/login/login";
 import { OrdersPage } from "../pages/orders/orders";
+import { LocalDataService } from "../shared/local-data.service";
 declare var cordova: any, PushNotification: any;
 
 @Component({
@@ -17,22 +18,20 @@ export class MyApp {
   rootPage:any = LoginPage;
   pages: Array<{index: number, title: string, component: any}>;
 
-  constructor(private platform: Platform, private statusBar: StatusBar, private splashScreen: SplashScreen, public menuCtrl: MenuController) {
+  constructor(private platform: Platform, private statusBar: StatusBar, private splashScreen: SplashScreen, public menuCtrl: MenuController, private localData: LocalDataService) {
 
     this.pages = [
       { index: 0, title: 'Orders', component: OrdersPage }
     ];
 
-    this.initCordova();
-    platform.ready().then(() => {
-      // Okay, so the platform is ready and our plugins are available.
-      // Here you can do any higher level native things you might need.
-      statusBar.styleDefault();
-      splashScreen.hide();
+    this.initCordova(() => {
+      if(this.localData.checkIsLoggedIn() === "true"){
+        this.rootPage = HomePage;
+      }
     });
   }
 
-  initCordova() {
+  initCordova(callback) {
     this.platform.ready().then(() => {
       // Okay, so the platform is ready and our plugins are available.
       // Here you can do any higher level native things you might need.
@@ -40,6 +39,7 @@ export class MyApp {
       this.splashScreen.hide(); 
       //this.listenToNotificationEvents();
       this.initFCM();
+      callback && callback();
     });
   }
 
@@ -79,6 +79,12 @@ export class MyApp {
     this.menuCtrl.close();
     let page = this.pages.find(page => page.index == index);
     this.nav.push(page.component);
+  }
+
+  logout(){
+    this.menuCtrl.close();
+    this.localData.logout();
+    this.nav.setRoot(LoginPage);
   }
 }
 

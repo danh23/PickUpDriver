@@ -3,6 +3,7 @@ import { IonicPage, NavController, NavParams } from 'ionic-angular';
 import { UserProvider } from "../../providers/user/user";
 import { User } from "../../shared/user/user";
 import { HomePage } from "../home/home";
+import { LocalDataService } from "../../shared/local-data.service";
 
 declare var facebookConnectPlugin: any;
 
@@ -12,15 +13,14 @@ declare var facebookConnectPlugin: any;
 })
 export class LoginPage {
 
-  user: User;
+  email: string;
+  password: string;
+  user: User = new User();
   isLoggingIn = true;
 
   @ViewChild("container") container: ElementRef;
 
-  constructor(public navCtrl: NavController, private userService: UserProvider) {
-    this.user = new User();
-    this.user.email = "my.test.account@nativescript.org";
-    this.user.password = "password";
+  constructor(public navCtrl: NavController, private userService: UserProvider, private localData: LocalDataService) {
   }
 
   ngOnInit() {
@@ -36,11 +36,14 @@ export class LoginPage {
   }
 
   login() {
-    this.userService.login(this.user)
-      .subscribe(
-        () => this.navCtrl.setRoot(HomePage),
-        (error) => alert("Unfortunately we could not find your account.")
-      );
+    this.userService.login(this.email).subscribe(
+      (res) => {
+        this.user = res;
+        this.localData.login(res);
+        this.navCtrl.setRoot(HomePage);
+      },
+      (error) => alert("Unfortunately we could not find your account.")
+    );
   }
 
   toggleDisplay() {

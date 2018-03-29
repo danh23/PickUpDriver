@@ -1,30 +1,32 @@
 export class Order {
     
+    id: number;
+    userId: number;
     title: string;
-    pickupAddress: string;
+    pickUpAddress: string;
     dropOffAddress: string;
     pickUpLocation: Location;
     dropOffLocation: Location;
     pickupDate: Date;
     dropOffDate: Date;
-    dimension: Dimension;
+    dimensions: Dimension;
     fragile: boolean;
     vehicleType: number;
     image: string;
 
     constructor() {
-        this.dimension = new Dimension();
+        this.dimensions = new Dimension();
         this.pickUpLocation = new Location();
         this.dropOffLocation = new Location();
     }
 }
-    
+
 export class Location{
-    
+
     latitude: number;
     longitude: number;
 }
-    
+
 export class Dimension{
 
     width: number;
@@ -35,4 +37,15 @@ export class Dimension{
 export class OrdersInAreaRequest{
     location: Location;
     offset: number;
+}
+
+export class DriverToClientNotification {
+     driverId: number;
+     orderId: number;
+     orderTitle: string;
+     driverLocation: Location;
+
+     constructor(){
+         this.driverLocation = new Location();
+     }
 }
