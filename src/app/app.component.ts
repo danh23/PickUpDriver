@@ -38,40 +38,7 @@ export class MyApp {
       this.statusBar.styleDefault();
       this.splashScreen.hide(); 
       //this.listenToNotificationEvents();
-      this.initFCM();
       callback && callback();
-    });
-  }
-
-  initFCM() {
-    const push = PushNotification.init({
-      android: {
-      },
-      ios: {
-        alert: "true",
-        badge: true,
-        sound: 'false'
-      },
-    });
-
-    push.on('registration', (data) => {
-      console.log("FCM registrationID: " + data.registrationId);
-      console.log("FCM registrationType: " + data.registrationType);
-      push.subscribe('JavaSampleApproach', () => {
-        console.log('success');
-      }, (e) => {
-        console.log('error:', e);
-      });
-    });
-
-    push.on('notification', (data) => {
-      console.log("notification received");
-      console.log(data.message);
-      console.log(data.title);
-      console.log(data.count);
-      console.log(data.sound);
-      console.log(data.image);
-      console.log(data.additionalData);
     });
   }
 

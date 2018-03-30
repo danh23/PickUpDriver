@@ -14,9 +14,10 @@ import {
  import { Geolocation } from '@ionic-native/geolocation';
  import { LaunchNavigator, LaunchNavigatorOptions } from "@ionic-native/launch-navigator";
  import { SharedService } from "../../shared/shared-service";
- import { Order, Location } from "../../shared/order/order";
+ import { Order, Location, DriverToClientNotification } from "../../shared/order/order";
  import { LocalDataService } from "../../shared/local-data.service";
  import Utils from "../../utils/utils";
+ import { OrderService } from "../../shared/order/order-service";
 
  declare var google: any;
 /**
@@ -31,8 +32,7 @@ import {
 })
 export class MapComponent implements OnInit{
 
-  start: any = 'bucuresti';
-  end: any = 'vaslui';
+  end: any;
   map: GoogleMap;
   myLocation: Location = {
     latitude: 0,
@@ -73,7 +73,23 @@ export class MapComponent implements OnInit{
     transportMode: this.launchNavigator.TRANSPORT_MODE.DRIVING
   };
 
-  constructor(private googleMaps: GoogleMaps, private geolocation: Geolocation, private launchNavigator: LaunchNavigator, private sharedService: SharedService, private localData: LocalDataService) { }
+  order: Order;
+  timer: any;
+
+  constructor(private googleMaps: GoogleMaps,
+     private geolocation: Geolocation,
+      private launchNavigator: LaunchNavigator,
+       private sharedService: SharedService,
+        private localData: LocalDataService,
+      private orderService: OrderService) {
+    this.sharedService.sendOrder$.subscribe(
+      (res: Order) =>{
+        this.order = res;
+        this.end = {lat: res.pickUpLocation.latitude, lng: res.pickUpLocation.longitude};
+        this.setTimer(10000);
+        this.calculateAndDisplayRoute({lat: this.myLocation.latitude, lng: this.myLocation.longitude}, this.end);
+      });
+    }
 
   ngOnInit() {
     console.log("map view loaded");
@@ -124,37 +140,37 @@ export class MapComponent implements OnInit{
   }
 
   addMarker(location: Location) {
-      console.log("add marker");
-      console.log(location);
-      this.map.addMarker({
-        title: 'Ionic',
-        icon: 'blue',
-        animation: 'DROP',
-        position: {lat: location.latitude, lng: location.longitude}
-      })
-      .then(marker => {
-        marker.on(GoogleMapsEvent.MARKER_CLICK)
-          .subscribe(() => {
-            alert('clicked');
-          });
-      });
-    }
+    console.log("add marker");
+    console.log(location);
+    this.map.addMarker({
+      title: 'Ionic',
+      icon: 'blue',
+      animation: 'DROP',
+      position: {lat: location.latitude, lng: location.longitude}
+    })
+    .then(marker => {
+      marker.on(GoogleMapsEvent.MARKER_CLICK)
+        .subscribe(() => {
+          alert('clicked');
+        });
+    });
+  }
 
-    addOrderMarker(order: Order) {
-      console.log("add order marker");
-      this.map.addMarker({
-        title: order.title,
-        icon: 'red',
-        animation: 'DROP',
-        position: {lat: order.pickUpLocation.latitude, lng: order.pickUpLocation.longitude}
-      })
-      .then(marker => {
-        marker.on(GoogleMapsEvent.MARKER_CLICK)
-          .subscribe(() => {
-            alert('clicked');
-          });
-      });
-    }
+  addOrderMarker(order: Order) {
+    console.log("add order marker");
+    this.map.addMarker({
+      title: order.title,
+      icon: 'red',
+      animation: 'DROP',
+      position: {lat: order.pickUpLocation.latitude, lng: order.pickUpLocation.longitude}
+    })
+    .then(marker => {
+      marker.on(GoogleMapsEvent.MARKER_CLICK)
+        .subscribe(() => {
+          alert('clicked');
+        });
+    });
+  }
 
   moveCamera(location: Location) {
     this.mapOptions.camera.target.lat = location.latitude;
@@ -178,11 +194,11 @@ export class MapComponent implements OnInit{
     });
   }
 
-  calculateAndDisplayRoute() {
+  calculateAndDisplayRoute(start: ILatLng, end: ILatLng) {
       console.log("navigate");
         this.directionsService.route({
-          origin: {lat: this.myLocation.latitude, lng: this.myLocation.longitude},
-          destination: this.end,
+          origin: start,
+          destination: end,
           travelMode: 'DRIVING'
         }, (response, status) => {
           debugger;
@@ -218,4 +234,28 @@ export class MapComponent implements OnInit{
     let offset = Utils.computeDistanceBeetweenPoints(this.circle.getCenter(), this.circle.getBounds().northeast);
     this.localData.setSearchingArea({location: {latitude: this.circle.getCenter().lat, longitude: this.circle.getCenter().lng}, offset: offset});
   }
+
+  notifyClientOfPosition(){
+    let request = new DriverToClientNotification();
+    let user = this.localData.getUser();
+    request.driverId = user.id;
+    request.driverLocation = this.myLocation;
+    request.orderId = this.order.id;
+    request.orderTitle = this.order.title;
+    request.topic = this.order.userId.toString();
+    this.orderService.notifyClient(request).subscribe(
+      res => {
+        console.log("messageId: " + res)
+      }, (err) => {console.log(err)});
+  }
+
+  setTimer(interval:number){
+		this.timer = setInterval(() => {
+            this.notifyClientOfPosition();     
+        }, interval);
+    }
+
+  ngOnDestroy(){
+    clearTimeout(this.timer);
+  } 
 }

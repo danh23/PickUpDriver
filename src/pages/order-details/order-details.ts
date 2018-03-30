@@ -34,7 +34,6 @@ export class OrderDetailsPage {
 
   selectOrder() {
     this.notifyClient();
-    this.sharedService.displayOrderOnMap(this.order);
   }
 
   notifyClient(){
@@ -44,10 +43,11 @@ export class OrderDetailsPage {
     request.driverLocation = this.localData.getUserLocation();
     request.orderId = this.order.id;
     request.orderTitle = this.order.title;
-
+    request.topic = this.order.userId.toString();
     this.orderService.notifyClient(request).subscribe(
       res => {
         console.log("messageId: " + res)
+        this.sharedService.displayOrderOnMap(this.order);
       }, (err) => {console.log(err)});
   }
 

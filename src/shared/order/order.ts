@@ -40,12 +40,13 @@ export class OrdersInAreaRequest{
 }
 
 export class DriverToClientNotification {
-     driverId: number;
-     orderId: number;
-     orderTitle: string;
-     driverLocation: Location;
+    topic: string;
+    driverId: number;
+    orderId: number;
+    orderTitle: string;
+    driverLocation: Location;
 
-     constructor(){
-         this.driverLocation = new Location();
-     }
+    constructor(){
+        this.driverLocation = new Location();
+    }
 }
