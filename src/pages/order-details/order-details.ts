@@ -48,6 +48,7 @@ export class OrderDetailsPage {
       res => {
         console.log("messageId: " + res)
         this.sharedService.displayOrderOnMap(this.order);
+        this.navCtrl.popToRoot();
       }, (err) => {console.log(err)});
   }
 

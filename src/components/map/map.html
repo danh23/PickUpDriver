@@ -7,6 +7,8 @@
                 <ion-label range-right>100</ion-label>
               </ion-range>
           </ion-item>
+          <button *ngIf="orderInArea == true" ion-button (tap)="takeOrder()">Take</button>
+          <button *ngIf="timer != undefined" (tap)="cancelOrder()" ion-button>Cancel Order</button>
       </ion-list>
   </ion-card-content>
 </ion-card>

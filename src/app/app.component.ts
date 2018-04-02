@@ -6,6 +6,7 @@ import { HomePage } from '../pages/home/home';
 import { LoginPage } from "../pages/login/login";
 import { OrdersPage } from "../pages/orders/orders";
 import { LocalDataService } from "../shared/local-data.service";
+import { AndroidPermissions } from '@ionic-native/android-permissions';
 declare var cordova: any, PushNotification: any;
 
 @Component({
@@ -18,7 +19,13 @@ export class MyApp {
   rootPage:any = LoginPage;
   pages: Array<{index: number, title: string, component: any}>;
 
-  constructor(private platform: Platform, private statusBar: StatusBar, private splashScreen: SplashScreen, public menuCtrl: MenuController, private localData: LocalDataService) {
+  constructor(
+    private platform: Platform,
+     private statusBar: StatusBar,
+      private splashScreen: SplashScreen,
+       public menuCtrl: MenuController,
+        private localData: LocalDataService,
+        private androidPermissions: AndroidPermissions) {
 
     this.pages = [
       { index: 0, title: 'Orders', component: OrdersPage }
@@ -40,6 +47,13 @@ export class MyApp {
       //this.listenToNotificationEvents();
       callback && callback();
     });
+  }
+
+  requestPermisions(){
+    this.androidPermissions.requestPermissions([
+      this.androidPermissions.PERMISSION.CAMERA,
+      this.androidPermissions.PERMISSION.ACCESS_FINE_LOCATION
+    ]);
   }
 
   changePage(index: number) {

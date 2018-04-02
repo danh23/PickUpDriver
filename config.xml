@@ -97,4 +97,5 @@
         <variable name="APP_NAME" value="PickUpDriver" />
     </plugin>
     <plugin name="cordova-plugin-compat" spec="^1.2.0" />
+    <plugin name="cordova-plugin-android-permissions" spec="^1.0.0" />
 </widget>

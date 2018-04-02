@@ -9,7 +9,10 @@ import {
   Marker,
   CircleOptions,
   Circle,
-  ILatLng
+  ILatLng,
+  Polyline,
+  Geocoder,
+  GeocoderResult
  } from '@ionic-native/google-maps';
  import { Geolocation } from '@ionic-native/geolocation';
  import { LaunchNavigator, LaunchNavigatorOptions } from "@ionic-native/launch-navigator";
@@ -59,10 +62,12 @@ export class MapComponent implements OnInit{
     mapType: 'MAP_TYPE_ROADMAP'
   };
 
-  areaOptions: CircleOptions = {
+  circleOptions: CircleOptions = {
     center: {lat: this.myLocation.latitude, lng: this.myLocation.longitude},
     radius: this.area,
-    strokeWidth: 2
+    strokeWidth: 2,
+    strokeColor: "rgba(25, 189, 255, 0.7)",
+    fillColor: "rgba(25, 189, 255, 0.3)"
   }
 
   circle: Circle;  
@@ -70,18 +75,23 @@ export class MapComponent implements OnInit{
   mapElement: HTMLElement;
   navigatorOptions: LaunchNavigatorOptions = {
     //app: this.launchNavigator.APP.GOOGLE_MAPS,
-    transportMode: this.launchNavigator.TRANSPORT_MODE.DRIVING
+    transportMode: this.launchNavigator.TRANSPORT_MODE.DRIVING,
   };
 
   order: Order;
-  timer: any;
+  orderInArea = false;
+  timer: any = undefined;
+
+  polyline: Polyline;
+  marker: Marker;
 
   constructor(private googleMaps: GoogleMaps,
      private geolocation: Geolocation,
       private launchNavigator: LaunchNavigator,
        private sharedService: SharedService,
         private localData: LocalDataService,
-      private orderService: OrderService) {
+      private orderService: OrderService, 
+      private geocoder: Geocoder) {
     this.sharedService.sendOrder$.subscribe(
       (res: Order) =>{
         this.order = res;
@@ -92,12 +102,6 @@ export class MapComponent implements OnInit{
     }
 
   ngOnInit() {
-    console.log("map view loaded");
-    this.sharedService.sendOrder$.subscribe((order: Order) => {
-      console.log("order marker added");
-      this.addOrderMarker(order);
-      this.end = {lat: order.dropOffLocation.latitude, lng: order.dropOffLocation.longitude }
-    });
     this.loadMap();
   }
 
@@ -123,62 +127,41 @@ export class MapComponent implements OnInit{
 
       this.localData.setUserLocation(this.myLocation);
       
-      this.moveCamera(this.myLocation);
-      this.map.setVisible(true);
-      this.map.setClickable(true);
-      this.map.addCircle(this.areaOptions).then((circle: Circle) =>{
-        this.circle = circle;
-        this.localData.setSearchingArea({location: this.myLocation, offset: Utils.computeDistanceBeetweenPoints(this.circle.getCenter(), this.circle.getBounds().northeast)});
-        this.map.on(GoogleMapsEvent.CAMERA_MOVE).subscribe(() => {
-          circle.setCenter(this.map.getCameraTarget());
-          this.localData.setSearchingArea({location: {latitude: this.map.getCameraTarget().lat, longitude: this.map.getCameraTarget().lng}, offset: Utils.computeDistanceBeetweenPoints(this.circle.getCenter(), this.circle.getBounds().northeast)});
+      this.moveCamera(this.myLocation).then(res =>{
+        this.map.setVisible(true);
+        this.map.setClickable(true);
+        this.map.addCircle(this.circleOptions).then((circle: Circle) =>{
+          this.circle = circle;
+          this.localData.setSearchingArea({location: this.myLocation, offset: Utils.computeDistanceBeetweenPoints(this.circle.getCenter(), this.circle.getBounds().northeast)});
+          this.map.on(GoogleMapsEvent.CAMERA_MOVE).subscribe(() => {
+            circle.setCenter(this.map.getCameraTarget());
+            this.localData.setSearchingArea({location: {latitude: this.map.getCameraTarget().lat, longitude: this.map.getCameraTarget().lng}, offset: Utils.computeDistanceBeetweenPoints(this.circle.getCenter(), this.circle.getBounds().northeast)});
+          });
         });
-      });
-    }).catch((error) => {
-      console.log('Error getting location', error);
-    });  
-  }
-
-  addMarker(location: Location) {
-    console.log("add marker");
-    console.log(location);
-    this.map.addMarker({
-      title: 'Ionic',
-      icon: 'blue',
-      animation: 'DROP',
-      position: {lat: location.latitude, lng: location.longitude}
-    })
-    .then(marker => {
-      marker.on(GoogleMapsEvent.MARKER_CLICK)
-        .subscribe(() => {
-          alert('clicked');
-        });
+      }).catch((error) => {
+        console.log('Error getting location', error);
+      });  
     });
   }
 
-  addOrderMarker(order: Order) {
+  addMarker(position: ILatLng) {
+    if(this.marker !== undefined){
+      this.marker.remove();
+    }
     console.log("add order marker");
     this.map.addMarker({
-      title: order.title,
+      title: this.order.title,
       icon: 'red',
       animation: 'DROP',
-      position: {lat: order.pickUpLocation.latitude, lng: order.pickUpLocation.longitude}
-    })
-    .then(marker => {
-      marker.on(GoogleMapsEvent.MARKER_CLICK)
-        .subscribe(() => {
-          alert('clicked');
-        });
-    });
+      position: position
+    }).then(marker => this.marker = marker);
   }
 
   moveCamera(location: Location) {
     this.mapOptions.camera.target.lat = location.latitude;
     this.mapOptions.camera.target.lng = location.longitude;
     console.log(location);
-    this.map.moveCamera(this.mapOptions.camera).then(()=>{
-      console.log("camera moved");
-    });
+    return this.map.moveCamera(this.mapOptions.camera);
   }
 
   getCurrentPosition() {
@@ -195,38 +178,44 @@ export class MapComponent implements OnInit{
   }
 
   calculateAndDisplayRoute(start: ILatLng, end: ILatLng) {
-      console.log("navigate");
-        this.directionsService.route({
-          origin: start,
-          destination: end,
-          travelMode: 'DRIVING'
-        }, (response, status) => {
-          debugger;
-          console.log(response);
-          if (status === 'OK') {
-            let points = [];
-            let steps = response.routes[0].legs[0].steps;
-            steps.forEach(step => {
-              step.path.forEach(point => {
-                points.push({lat: point.lat(), lng: point.lng()})
-              });
-            });
-            this.map.addPolyline({
-              "points": points,
-              color: "black",
-              width: 10
-            }).then((polyline) => {
-              console.log(polyline);
-            }) 
-          } else {
-            window.alert('Directions request failed due to ' + status);
-          }
-          this.launchNavigator.navigate(this.end, this.navigatorOptions)
-          .then(
-            success => console.log('Launched navigator'),
-            error => console.log('Error launching navigator', error)
-          );
+    if(this.polyline !== undefined){
+      this.polyline.remove();
+    }
+    console.log("navigate");
+    this.directionsService.route({
+      origin: start,
+      destination: end,
+      travelMode: 'DRIVING'
+    }, (response, status) => {
+      console.log(response);
+      if (status === 'OK') {
+        let points = [];
+        let steps = response.routes[0].legs[0].steps;
+        steps.forEach(step => {
+          step.path.forEach(point => {
+            points.push({lat: point.lat(), lng: point.lng()})
+          });
         });
+        this.map.addPolyline({
+          points: points,
+          color: "black",
+          width: 10
+        }).then((polyline) => {
+          this.polyline = polyline
+          this.addMarker(end);
+          console.log(polyline);
+          this.geocodeCoordToAddress(end).then(res => {
+            this.launchNavigator.navigate(res, this.navigatorOptions)
+            .then(
+              success => console.log('Launched navigator'),
+              error => console.log('Error launching navigator', error)
+            );
+          }); 
+        }); 
+      } else {
+        window.alert('Directions request failed due to ' + status);
+      }
+    });
   }
 
   changeArea(value: number) {
@@ -251,11 +240,36 @@ export class MapComponent implements OnInit{
 
   setTimer(interval:number){
 		this.timer = setInterval(() => {
-            this.notifyClientOfPosition();     
+            this.notifyClientOfPosition(); 
+            let distance = Utils.computeDistanceBeetweenPoints({lat: this.myLocation.latitude, lng: this.myLocation.longitude}, {lat: this.order.pickUpLocation.latitude, lng: this.order.pickUpLocation.longitude}); 
+            if(distance < 0.03){
+              this.orderInArea = true;
+            } else {
+              this.orderInArea = false;
+            }
         }, interval);
-    }
+  }
 
-  ngOnDestroy(){
+  takeOrder(){
+    this.clearTimeout();
+    this.orderInArea = false;
+    this.calculateAndDisplayRoute({lat: this.myLocation.latitude, lng: this.myLocation.longitude}, {lat: this.order.dropOffLocation.latitude, lng: this.order.dropOffLocation.longitude});
+  }
+
+  clearTimeout(){
     clearTimeout(this.timer);
-  } 
+    this.timer = undefined;
+  }
+
+  cancelOrder(){
+    this.clearTimeout();
+    this.polyline.remove();
+    this.marker.remove();
+  }
+
+  geocodeCoordToAddress(position: ILatLng){
+    return Geocoder.geocode({position: position}).then((result: GeocoderResult[]) => {
+      return result[0].extra.lines[0];
+    });
+  }
 }

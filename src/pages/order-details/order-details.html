@@ -27,6 +27,18 @@
           <ion-col col-4><ion-label>Dropoff:</ion-label></ion-col>
           <ion-col col-8>{{order.dropOffAddress}}</ion-col>
         </ion-row>
+        <ion-row>
+          <ion-col col-4><ion-label>Width:</ion-label></ion-col>
+          <ion-col col-8>{{order.dimensions.width}}</ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col col-4><ion-label>Height:</ion-label></ion-col>
+          <ion-col col-8>{{order.dimensions.height}}</ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col col-4><ion-label>Length:</ion-label></ion-col>
+          <ion-col col-8>{{order.dimensions.length}}</ion-col>
+        </ion-row>
         <button (tap)="selectOrder()" ion-button>Select order</button>
       </ion-grid>
 </ion-content>
