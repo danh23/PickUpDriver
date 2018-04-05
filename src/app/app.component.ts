@@ -7,6 +7,7 @@ import { LoginPage } from "../pages/login/login";
 import { OrdersPage } from "../pages/orders/orders";
 import { LocalDataService } from "../shared/local-data.service";
 import { AndroidPermissions } from '@ionic-native/android-permissions';
+import { DriverSettingsPage } from "../pages/driver-settings/driver-settings";
 declare var cordova: any, PushNotification: any;
 
 @Component({
@@ -28,7 +29,8 @@ export class MyApp {
         private androidPermissions: AndroidPermissions) {
 
     this.pages = [
-      { index: 0, title: 'Orders', component: OrdersPage }
+      { index: 0, title: 'Orders', component: OrdersPage },
+      { index: 1, title: 'Settings', component: DriverSettingsPage }
     ];
 
     this.initCordova(() => {

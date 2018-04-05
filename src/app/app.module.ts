@@ -22,6 +22,8 @@ import { RequestOptions } from "@angular/http";
 import { Interceptor } from "../config/interceptor";
 import { OrderService } from "../shared/order/order-service";
 import { LocalDataService } from "../shared/local-data.service";
+import { AndroidPermissions } from "@ionic-native/android-permissions";
+import { DriverSettingsPageModule } from "../pages/driver-settings/driver-settings.module";
 
 @NgModule({
   declarations: [
@@ -34,7 +36,8 @@ import { LocalDataService } from "../shared/local-data.service";
     LoginPageModule,
     ComponentsModule,
     OrdersPageModule,
-    OrderDetailsPageModule
+    OrderDetailsPageModule,
+    DriverSettingsPageModule
   ],
   bootstrap: [IonicApp],
   entryComponents: [
@@ -51,6 +54,7 @@ import { LocalDataService } from "../shared/local-data.service";
     GoogleMaps,
     Geocoder,
     Geolocation,
+    AndroidPermissions,
     LaunchNavigator,
     SharedService,
     OrderService,

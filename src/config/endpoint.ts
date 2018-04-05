@@ -1,4 +1,6 @@
 export const endpoints = {
+    getCarTypes: "/driver/getCarTypes",
+
     getOrdersInArea: "/order/getOrdersInArea",
     getOrderById: "/order/getOrderById",
 

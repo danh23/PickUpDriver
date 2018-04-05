@@ -44,6 +44,7 @@ export class OrderDetailsPage {
     request.orderId = this.order.id;
     request.orderTitle = this.order.title;
     request.topic = this.order.userId.toString();
+    request.scope = "START";
     this.orderService.notifyClient(request).subscribe(
       res => {
         console.log("messageId: " + res)

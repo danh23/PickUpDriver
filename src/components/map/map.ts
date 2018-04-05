@@ -17,7 +17,7 @@ import {
  import { Geolocation } from '@ionic-native/geolocation';
  import { LaunchNavigator, LaunchNavigatorOptions } from "@ionic-native/launch-navigator";
  import { SharedService } from "../../shared/shared-service";
- import { Order, Location, DriverToClientNotification } from "../../shared/order/order";
+ import { Order, Location, DriverToClientNotification, OrdersInAreaRequest } from "../../shared/order/order";
  import { LocalDataService } from "../../shared/local-data.service";
  import Utils from "../../utils/utils";
  import { OrderService } from "../../shared/order/order-service";
@@ -41,7 +41,6 @@ export class MapComponent implements OnInit{
     latitude: 0,
     longitude: 0
   };
-  area: number = 10;
   
   directionsService = new google.maps.DirectionsService;
   mapOptions: GoogleMapOptions = {
@@ -64,7 +63,7 @@ export class MapComponent implements OnInit{
 
   circleOptions: CircleOptions = {
     center: {lat: this.myLocation.latitude, lng: this.myLocation.longitude},
-    radius: this.area,
+    radius: 1000,
     strokeWidth: 2,
     strokeColor: "rgba(25, 189, 255, 0.7)",
     fillColor: "rgba(25, 189, 255, 0.3)"
@@ -98,10 +97,12 @@ export class MapComponent implements OnInit{
         this.end = {lat: res.pickUpLocation.latitude, lng: res.pickUpLocation.longitude};
         this.setTimer(10000);
         this.calculateAndDisplayRoute({lat: this.myLocation.latitude, lng: this.myLocation.longitude}, this.end);
+        console.log(this.myLocation);
       });
     }
 
   ngOnInit() {
+    console.log(this.myLocation);
     this.loadMap();
   }
 
@@ -125,17 +126,22 @@ export class MapComponent implements OnInit{
       this.myLocation.latitude = resp.coords.latitude;
       this.myLocation.longitude= resp.coords.longitude;
 
+      console.log(this.myLocation);
+
       this.localData.setUserLocation(this.myLocation);
       
       this.moveCamera(this.myLocation).then(res =>{
         this.map.setVisible(true);
         this.map.setClickable(true);
+        this.circleOptions.center.lat = this.myLocation.latitude;
+        this.circleOptions.center.lng = this.myLocation.longitude;
         this.map.addCircle(this.circleOptions).then((circle: Circle) =>{
           this.circle = circle;
-          this.localData.setSearchingArea({location: this.myLocation, offset: Utils.computeDistanceBeetweenPoints(this.circle.getCenter(), this.circle.getBounds().northeast)});
+          console.log("circle radius: " + Utils.computeDistanceBeetweenPoints(circle.getCenter(), circle.getBounds().northeast));
+          this.localData.setSearchingArea({location: this.myLocation, offset: (this.circle.getRadius() / 100000)});
           this.map.on(GoogleMapsEvent.CAMERA_MOVE).subscribe(() => {
             circle.setCenter(this.map.getCameraTarget());
-            this.localData.setSearchingArea({location: {latitude: this.map.getCameraTarget().lat, longitude: this.map.getCameraTarget().lng}, offset: Utils.computeDistanceBeetweenPoints(this.circle.getCenter(), this.circle.getBounds().northeast)});
+            this.localData.setSearchingArea({location: {latitude: this.map.getCameraTarget().lat, longitude: this.map.getCameraTarget().lng}, offset: (this.circle.getRadius() / 100000)});
           });
         });
       }).catch((error) => {
@@ -165,6 +171,8 @@ export class MapComponent implements OnInit{
   }
 
   getCurrentPosition() {
+    console.log("current pos");
+    console.log(this.geolocation.getCurrentPosition());
     return this.geolocation.getCurrentPosition();
   }
 
@@ -220,18 +228,21 @@ export class MapComponent implements OnInit{
 
   changeArea(value: number) {
     this.circle.setRadius(value);
-    let offset = Utils.computeDistanceBeetweenPoints(this.circle.getCenter(), this.circle.getBounds().northeast);
-    this.localData.setSearchingArea({location: {latitude: this.circle.getCenter().lat, longitude: this.circle.getCenter().lng}, offset: offset});
+    let offset = this.circle.getRadius() / 100000; //cm to km
+    this.localData.setSearchingArea({location: {latitude: this.circle.getCenter().lng, longitude: this.circle.getCenter().lat}, offset: offset});
+    console.log("offset: " + offset);
   }
 
   notifyClientOfPosition(){
     let request = new DriverToClientNotification();
     let user = this.localData.getUser();
     request.driverId = user.id;
-    request.driverLocation = this.myLocation;
+    request.driverLocation = {latitude: this.myLocation.latitude, longitude: this.myLocation.longitude};
     request.orderId = this.order.id;
     request.orderTitle = this.order.title;
-    request.topic = this.order.userId.toString();
+    request.scope = "UPDATE";
+    request.topic = "updateLocation-"+this.order.userId.toString();
+    request.estimatedTime = "1h";
     this.orderService.notifyClient(request).subscribe(
       res => {
         console.log("messageId: " + res)
@@ -271,5 +282,33 @@ export class MapComponent implements OnInit{
     return Geocoder.geocode({position: position}).then((result: GeocoderResult[]) => {
       return result[0].extra.lines[0];
     });
+  }
+
+  //test
+  markers: Array<Marker> = new Array<Marker>();
+  showOrdersInArea(){
+    let request = new OrdersInAreaRequest();
+    request.location.latitude = this.circle.getCenter().lat;
+    request.location.longitude = this.circle.getCenter().lng;
+    //request.offset = Math.abs(this.circle.getCenter().lat - this.circle.getBounds().northeast.lat);
+    request.offset = this.circle.getRadius() /100000 //cm to km
+    this.orderService.getOrdersInArea(request).subscribe((res)=>{
+      this.markers.forEach(marker => marker.remove());
+      res.forEach(order => {
+        this.map.addMarker({
+          title: order.title,
+          icon: 'green',
+          animation: 'DROP',
+          position: {lat: order.location.latitude, lng: order.location.longitude}
+        }).then((marker)=>{
+          console.log("order found " + order.title)
+          this.markers.push(marker);
+        });
+      });
+    });
+  }
+
+  showEstimatedTime(){
+
   }
 }

@@ -37,6 +37,10 @@ export class Dimension{
 export class OrdersInAreaRequest{
     location: Location;
     offset: number;
+    
+    constructor(){
+        this.location = new Location();
+    }
 }
 
 export class DriverToClientNotification {
@@ -45,6 +49,8 @@ export class DriverToClientNotification {
     orderId: number;
     orderTitle: string;
     driverLocation: Location;
+    scope: string;
+    estimatedTime: string;
 
     constructor(){
         this.driverLocation = new Location();

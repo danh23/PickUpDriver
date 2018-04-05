@@ -32,6 +32,15 @@ export class UserProvider {
       .catch(this.handleError);
       return result;
     }
+
+    getCarTypes() {
+        let url = Config.apiUrl + endpoints.getCarTypes;
+        let result = this.http.get(url, this.options)
+        .map((response: Response) => response.json())
+        .do(data => console.log("Do data: " + JSON.stringify(data)))
+        .catch(this.handleError);
+        return result;
+    }
   
     private handleError(err) {
         let errMessage: string;

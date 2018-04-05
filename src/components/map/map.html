@@ -2,13 +2,14 @@
   <ion-card-content>
       <ion-list>       
           <ion-item>
-              <ion-range min="10" max="10000" [(ngModel)]="area" (ngModelChange)="changeArea($event)" color="secondary">
-                <ion-label range-left>10</ion-label>
-                <ion-label range-right>100</ion-label>
+              <ion-range min="1000" max="10000" [(ngModel)]="area" (ngModelChange)="changeArea($event)" [pin]="true" color="secondary">
+                <ion-label range-left>1km</ion-label>
+                <ion-label range-right>10km</ion-label>
               </ion-range>
           </ion-item>
           <button *ngIf="orderInArea == true" ion-button (tap)="takeOrder()">Take</button>
           <button *ngIf="timer != undefined" (tap)="cancelOrder()" ion-button>Cancel Order</button>
+          <button (tap)="showOrdersInArea()" ion-button>Search</button>
       </ion-list>
   </ion-card-content>
 </ion-card>
