@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef, OnInit } from '@angular/core';
+import { Component, ViewChild, ElementRef, OnInit, NgZone } from '@angular/core';
 import {
   GoogleMaps,
   GoogleMap,
@@ -90,7 +90,8 @@ export class MapComponent implements OnInit{
        private sharedService: SharedService,
         private localData: LocalDataService,
       private orderService: OrderService, 
-      private geocoder: Geocoder) {
+      private geocoder: Geocoder,
+      private zone: NgZone) {
     this.sharedService.sendOrder$.subscribe(
       (res: Order) =>{
         this.order = res;
@@ -179,9 +180,11 @@ export class MapComponent implements OnInit{
   updatePosition() {
     let watch = this.geolocation.watchPosition();
     watch.subscribe((resp) => {
-      this.myLocation.latitude = resp.coords.latitude;
-      this.myLocation.longitude = resp.coords.longitude;
-      this.localData.setUserLocation(this.myLocation);
+      this.zone.run(() => {
+        this.myLocation.latitude = resp.coords.latitude;
+        this.myLocation.longitude = resp.coords.longitude;
+        this.localData.setUserLocation(this.myLocation);
+      });
     });
   }
 
@@ -242,7 +245,21 @@ export class MapComponent implements OnInit{
     request.orderTitle = this.order.title;
     request.scope = "UPDATE";
     request.topic = "updateLocation-"+this.order.userId.toString();
-    request.estimatedTime = "1h";
+    this.orderService.notifyClient(request).subscribe(
+      res => {
+        console.log("messageId: " + res)
+      }, (err) => {console.log(err)});
+  }
+
+  finishOrder(){
+    let request = new DriverToClientNotification();
+    let user = this.localData.getUser();
+    request.driverId = user.id;
+    request.driverLocation = {latitude: this.myLocation.latitude, longitude: this.myLocation.longitude};
+    request.orderId = this.order.id;
+    request.orderTitle = this.order.title;
+    request.scope = "FINISH";
+    request.topic = "updateLocation-"+this.order.userId.toString();
     this.orderService.notifyClient(request).subscribe(
       res => {
         console.log("messageId: " + res)
@@ -276,6 +293,7 @@ export class MapComponent implements OnInit{
     this.clearTimeout();
     this.polyline.remove();
     this.marker.remove();
+    this.finishOrder();
   }
 
   geocodeCoordToAddress(position: ILatLng){
