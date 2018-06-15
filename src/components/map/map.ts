@@ -130,6 +130,8 @@ export class MapComponent implements OnInit{
       console.log(this.myLocation);
 
       this.localData.setUserLocation(this.myLocation);
+
+      this.updatePosition();
       
       this.moveCamera(this.myLocation).then(res =>{
         this.map.setVisible(true);
